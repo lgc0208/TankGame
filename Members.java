@@ -1,4 +1,4 @@
-package myTankGame5;
+package myTankGame6;
 
 import java.util.Vector;
 
@@ -55,6 +55,7 @@ class Shot implements Runnable
 	int y;
 	int direct;
 	int speed = 3;
+	boolean pause = false;
 	
 	//是否还活着
 	boolean isLive = true;
@@ -101,7 +102,7 @@ class Shot implements Runnable
 			try {
 				Thread.sleep(50);
 			} catch (Exception e) {
-				// TODO: handle exception
+				e.printStackTrace();
 			}
 			
 			switch(direct)
@@ -123,7 +124,6 @@ class Shot implements Runnable
 				this.x -= this.speed;
 				break;
 			}
-			//System.out.println("子弹坐标：x=" + this.getX() + " y=" + this.getY());
 			
 			//子弹死亡
 			//判断该子弹是否碰到边缘
@@ -197,6 +197,7 @@ class Hero extends Tank
 {
 	//子弹
 	Shot s = null;
+	boolean pause = false;
 	Vector<Shot> ss = new Vector<Shot>();
 	
 	public Hero(int x, int y)
@@ -208,31 +209,33 @@ class Hero extends Tank
 	//开火
 	public void shotEnemy()
 	{
-		switch(this.direct)
+		if(!pause)
 		{
-		case 0:
-			//创建一颗子弹
-			s = new Shot(x + 9, y, this.direct);
-			//把子弹加入到向量
-			ss.add(s);
-			break;
-		case 1:
-			s = new Shot(x + 30, y + 9, this.direct);
-			ss.add(s);
-			break;
-		case 2:
-			s = new Shot(x + 9, y + 30, this.direct);
-			ss.add(s);
-			break;
-		case 3:
-			s = new Shot(x, y + 9, this.direct);
-			ss.add(s);
-			break;
+			switch(this.direct)
+			{
+			case 0:
+				//创建一颗子弹
+				s = new Shot(x + 9, y, this.direct);
+				//把子弹加入到向量
+				ss.add(s);
+				break;
+			case 1:
+				s = new Shot(x + 30, y + 9, this.direct);
+				ss.add(s);
+				break;
+			case 2:
+				s = new Shot(x + 9, y + 30, this.direct);
+				ss.add(s);
+				break;
+			case 3:
+				s = new Shot(x, y + 9, this.direct);
+				ss.add(s);
+				break;
+			}
+				//启动子弹线程
+				Thread t = new Thread(s);
+				t.start();
 		}
-		
-		//启动子弹线程
-		Thread t = new Thread(s);
-		t.start();
 	}
 	
 	//坦克向上移动
@@ -268,6 +271,10 @@ class Hero extends Tank
 class EnemyTank extends Tank implements Runnable
 {
 	int times = 0;
+	boolean pause = false;
+	
+	//定义一个向量，访问到面板上所有敌人坦克
+	Vector<EnemyTank> ets = new Vector<EnemyTank>();
 	
 	//定义一个向量存放敌人的子弹
 	Vector<Shot> ss = new Vector<Shot>();
@@ -276,6 +283,186 @@ class EnemyTank extends Tank implements Runnable
 	public EnemyTank(int x, int y)
 	{
 		super(x, y);
+	}
+	
+	//得到GamePanel的敌人坦克向量
+	public void setEts(Vector<EnemyTank> v)
+	{
+		this.ets = v;
+	}
+	
+	//是否碰到了其他坦克
+	public boolean isTouchOtherTank()
+	{
+		boolean b = false;
+		
+		switch(this.direct)
+		{
+		case 0:
+			//向上
+			//取出所有敌人坦克
+			for(int i = 0; i < ets.size(); i++)
+			{
+				EnemyTank et = ets.get(i);
+				//如果取出的坦克不是正在执行的坦克本身
+				if(et != this)
+				{
+					//若敌人的方向是向下/向上
+					if(et.direct == 0 || et.direct == 2)
+					{
+						if(this.getX() >= et.getX() && this.getX() <= et.getX() + 22
+								&& this.getY() >= et.getY() && this.getY() <= et.getY() + 30)
+						{
+							return true;
+						}
+						if(this.getX() + 22 >= et.getX() && this.getX() + 22 <= et.getX() + 22
+								&& this.getY() >= et.getY() && this.getY() <= et.getY() + 30)
+						{
+							return true;
+						}
+					}
+					if(et.direct == 3 || et.direct == 1)
+					{
+						if(this.getX() >= et.getX() && this.getX() <= et.getX() + 30
+								&& this.getY() >= et.getY() && this.getY() <= et.getY() + 22)
+						{
+							return true;
+						}
+						if(this.getX() + 22 >= et.getX() && this.getX() + 22 <= et.getX() + 30
+								&& this.getY() >= et.getY() && this.getY() <= et.getY() + 22)
+						{
+							return true;
+						}
+					}
+				}
+			}
+			break;
+		case 1:
+			//向右
+			//取出所有敌人坦克
+			for(int i = 0; i < ets.size(); i++)
+			{
+				EnemyTank et = ets.get(i);
+				//如果取出的坦克不是正在执行的坦克本身
+				if(et != this)
+				{
+					//若敌人的方向是向下/向上
+					if(et.direct == 0 || et.direct == 2)
+					{
+						//上点
+						if(this.getX() + 30 >= et.getX() && this.getX() + 30 <= et.getX() + 22
+								&& this.getY() >= et.getY() && this.getY() <= et.getY() + 30)
+						{
+							return true;
+						}
+						//下点
+						if(this.getX() + 30 >= et.getX() && this.getX() + 30 <= et.getX() + 22
+								&& this.getY() + 22 >= et.getY() && this.getY() + 22 <= et.getY() + 30)
+						{
+							return true;
+						}
+					}
+					if(et.direct == 3 || et.direct == 1)
+					{
+						if(this.getX() + 30 >= et.getX() + 30 && this.getX() + 30 <= et.getX() + 30
+								&& this.getY() >= et.getY() && this.getY() + 22 <= et.getY() + 22)
+						{
+							return true;
+						}
+						if(this.getX() + 30 >= et.getX() && this.getX() + 30 <= et.getX() + 30
+								&& this.getY() + 22 >= et.getY() && this.getY() + 22 <= et.getY() + 22)
+						{
+							return true;
+						}
+					}
+				}
+			}
+			break;
+		case 2:
+			//向下
+			//取出所有敌人坦克
+			for(int i = 0; i < ets.size(); i++)
+			{
+				EnemyTank et = ets.get(i);
+				//如果取出的坦克不是正在执行的坦克本身
+				if(et != this)
+				{
+					//若敌人的方向是向下/向上
+					if(et.direct == 0 || et.direct == 2)
+					{
+						//左点
+						if(this.getX() >= et.getX() && this.getX() <= et.getX() + 22
+								&& this.getY() + 30 >= et.getY() && this.getY() + 30 <= et.getY() + 30)
+						{
+							return true;
+						}
+						//右点
+						if(this.getX() + 22 >= et.getX() && this.getX() + 22 <= et.getX() + 22
+								&& this.getY() + 30 >= et.getY() && this.getY() + 30 <= et.getY() + 30)
+						{
+							return true;
+						}
+					}
+					if(et.direct == 3 || et.direct == 1)
+					{
+						if(this.getX() >= et.getX() + 30 && this.getX() <= et.getX() + 30
+								&& this.getY() + 30 >= et.getY() && this.getY() + 30 <= et.getY() + 22)
+						{
+							return true;
+						}
+						if(this.getX() + 22 >= et.getX() && this.getX() + 22 <= et.getX() + 30
+								&& this.getY() + 30 >= et.getY() && this.getY() + 30 <= et.getY() + 22)
+						{
+							return true;
+						}
+					}
+				}
+			}
+			break;
+		case 3:
+			//向左
+			//取出所有敌人坦克
+			for(int i = 0; i < ets.size(); i++)
+			{
+				EnemyTank et = ets.get(i);
+				//如果取出的坦克不是正在执行的坦克本身
+				if(et != this)
+				{
+					//若敌人的方向是向下/向上
+					if(et.direct == 0 || et.direct == 2)
+					{
+						//上一点
+						if(this.getX() >= et.getX() && this.getX() <= et.getX() + 22
+								&& this.getY() >= et.getY() && this.getY() <= et.getY() + 30)
+						{
+							return true;
+						}
+						//下一点
+						if(this.getX() >= et.getX() && this.getX() <= et.getX() + 22
+								&& this.getY() + 22 >= et.getY() && this.getY() + 22 <= et.getY() + 30)
+						{
+							return true;
+						}
+					}
+					if(et.direct == 3 || et.direct == 1)
+					{
+						if(this.getX() >= et.getX() + 30 && this.getX() <= et.getX() + 30
+								&& this.getY() >= et.getY() && this.getY() <= et.getY() + 22)
+						{
+							return true;
+						}
+						if(this.getX() >= et.getX() && this.getX() <= et.getX() + 30
+								&& this.getY() + 22 >= et.getY() && this.getY() + 22 <= et.getY() + 22)
+						{
+							return true;
+						}
+					}
+				}
+			}
+			break;
+		}
+		
+		return b;
 	}
 	
 	public void run()
@@ -288,9 +475,13 @@ class EnemyTank extends Tank implements Runnable
 				//坦克正在向上移动
 				for(int i = 0; i < 30; i++)
 				{
-					if(y > 0)
+					if(y > 0 && !this.isTouchOtherTank())
 						y -= speed;
-					else this.direct = 1;
+					else 
+					{
+						this.direct = 1;
+						break;
+					}
 					try {
 						Thread.sleep(50);
 					} catch (InterruptedException e) {
@@ -303,9 +494,13 @@ class EnemyTank extends Tank implements Runnable
 				//向右
 				for(int i = 0; i < 30; i++)
 				{
-					if(x < 400)
+					if(x < 400 && !this.isTouchOtherTank())
 						x += speed;
-					else this.direct = 3;
+					else 
+					{
+						this.direct = 3;
+						break;
+					}
 					try {
 						Thread.sleep(50);
 					} catch (InterruptedException e) {
@@ -318,9 +513,13 @@ class EnemyTank extends Tank implements Runnable
 				//向下
 				for(int i = 0; i < 30; i++)
 				{
-					if(y < 300)
+					if(y < 300 && !this.isTouchOtherTank())
 						y += speed;
-					else this.direct = 0;
+					else
+					{
+						this.direct = 0;
+						break;
+					}
 					try {
 						Thread.sleep(50);
 					} catch (InterruptedException e) {
@@ -333,9 +532,13 @@ class EnemyTank extends Tank implements Runnable
 				//向左
 				for(int i = 0; i < 30; i++)
 				{
-					if(x > 0)
+					if(x > 0 && !this.isTouchOtherTank())
 						x -= speed;
-					else this.direct = 1;
+					else 
+					{
+						this.direct = 1;
+						break;
+					}
 					try {
 						Thread.sleep(50);
 					} catch (InterruptedException e) {
@@ -348,7 +551,7 @@ class EnemyTank extends Tank implements Runnable
 			this.times++;
 			if(times % 2 == 0)
 			{
-				if(isLive == true)
+				if(isLive == true && !pause)
 				{
 					//★这里的4表示同时可以发射4颗子弹
 					if(ss.size() < 4)
@@ -383,8 +586,11 @@ class EnemyTank extends Tank implements Runnable
 				}
 			}
 			
-			//让坦克随机产生一个新的方向
-			this.direct = (int)(Math.random() * 4);
+			if(!pause)
+			{
+				//让坦克随机产生一个新的方向
+				this.direct = (int)(Math.random() * 4);
+			}
 			
 			//判断敌人坦克是否死亡
 			if(this.isLive == false)
