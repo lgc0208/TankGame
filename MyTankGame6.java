@@ -1,5 +1,5 @@
 /**
- *	 坦克游戏5.0.0
+ *	 坦克游戏6.0.0
  *	1.画出坦克。
  *	2.我的坦克可以上下左右移动
  *	3.按下J键发射子弹，子弹连发，最多同时存在5颗
@@ -15,7 +15,7 @@
  *		10.2 闪烁效果
  *	11.可以在玩游戏的时候暂停或继续
  *		11.1 用户点击暂停时，用户和敌人速度为0，敌人方向固定
- *	
+ *	12.可以播放声音
  */
 package myTankGame6;
 import java.awt.*;
@@ -50,7 +50,7 @@ public class  MyTankGame6 extends JFrame implements ActionListener{
 		this.setTitle("坦克大战_LGC_2020.08");
 		this.setSize(414, 362);
 		this.setLocationRelativeTo(null); //居中显示
-//		this.setResizable(false); //不可改变窗体大小
+		this.setResizable(false); //不可改变窗体大小
 		this.setVisible(true);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -59,7 +59,7 @@ public class  MyTankGame6 extends JFrame implements ActionListener{
 		jml1 = new JMenu("游戏(G)");
 		//设置快捷方式
 		jml1.setMnemonic('G');
-		jmi1 = new JMenuItem("开始新游戏(N)");
+		jmi1 = new JMenuItem("开始游戏(N)");
 		jmi2 = new JMenuItem("暂停游戏(P)");
 		jmi3 = new JMenuItem("继续游戏(C)");
 		jmi1.setMnemonic('N');
@@ -90,7 +90,8 @@ public class  MyTankGame6 extends JFrame implements ActionListener{
 		it.start();
 		
 		this.setJMenuBar(jmb);
-				
+		
+		
 
 
 		
@@ -101,6 +102,7 @@ public class  MyTankGame6 extends JFrame implements ActionListener{
 		//对用户不同的点击做出不同的处理
 		if(e.getActionCommand().equals("newGame"))
 		{
+			
 			//创建主游戏面板
 			mp = new GamePanel();
 			//启动mp线程
@@ -111,6 +113,11 @@ public class  MyTankGame6 extends JFrame implements ActionListener{
 			//注册监听
 			this.addKeyListener(mp);
 			this.setVisible(true);
+			//播放声音
+			playMusic pm = new playMusic("music/backgroundMusic.wav");			
+			pm.start();
+			
+			
 		}
 		if(e.getActionCommand().equals("pauseGame"))
 		{
@@ -166,7 +173,7 @@ class InitialPanel extends JPanel implements Runnable
 			g.setColor(Color.YELLOW);
 			Font myFont = new Font("楷体", Font.BOLD, 30);
 			g.setFont(myFont);
-			g.drawString("坦 克 大 战", 140, 160);
+			g.drawString("坦 克 大 战", 110, 160);
 		}
 		
 		
@@ -174,6 +181,7 @@ class InitialPanel extends JPanel implements Runnable
 	
 	public void run()
 	{
+		
 		while(true)
 		{
 			try {
@@ -212,6 +220,7 @@ class GamePanel extends JPanel implements KeyListener, Runnable
 	public GamePanel()
 	{
 		hero = new Hero(100, 200); //初始化自己的坦克
+
 		//初始化敌人的坦克
 		for(int i = 0; i < enemySize; i++)
 		{
@@ -243,6 +252,8 @@ class GamePanel extends JPanel implements KeyListener, Runnable
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		
 	}
 	
 	//重写paint函数
@@ -336,6 +347,9 @@ class GamePanel extends JPanel implements KeyListener, Runnable
 		
 		if(hero.isLive == false)
 		{
+//			//播放声音
+//			playMusic failMusic = new playMusic("music/failed.wav");
+//			failMusic.start();
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, 400, 300);
 			g.setColor(Color.red);
@@ -346,6 +360,9 @@ class GamePanel extends JPanel implements KeyListener, Runnable
 		}
 		if(ets.size() == 0)
 		{
+//			//播放声音
+//			playMusic winMusic = new playMusic("music/win.wav");
+//			winMusic.start();
 			g.setColor(Color.YELLOW);
 			g.fillRect(0, 0, 400, 300);
 			g.setColor(Color.red);
@@ -353,6 +370,7 @@ class GamePanel extends JPanel implements KeyListener, Runnable
 			g.drawString("游戏结束，您胜利了！", 50, 130);
 			g.setFont(new Font("楷体", Font.BOLD, 20));
 			g.drawString("按下ESC键即可退出游戏", 80, 180);
+			
 		}
 		
 	}
@@ -417,6 +435,9 @@ class GamePanel extends JPanel implements KeyListener, Runnable
 				//创建一颗炸弹，放入vector
 				Bomb b = new Bomb(et.getX(), et.getY());
 				bombs.add(b);
+				//播放声音
+				playMusic boom = new playMusic("music/boom.wav");
+				boom.start();
 			}
 			break;
 			
@@ -431,6 +452,9 @@ class GamePanel extends JPanel implements KeyListener, Runnable
 				//创建一颗炸弹，放入vector
 				Bomb b = new Bomb(et.getX(), et.getY());
 				bombs.add(b);
+				//播放声音
+				playMusic boom = new playMusic("music/boom.wav");
+				boom.start();
 			}
 			break;
 		}
